@@ -1,5 +1,7 @@
 # bilheteria_app
 
+Nota: O foco foi para funcionalidades, quanto UI será melhora quando houver disponibilidade.
+
 Padrao de arquitectura 
 - MVC
 
