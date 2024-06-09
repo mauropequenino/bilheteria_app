@@ -1,4 +1,4 @@
-# bilheteria_app
+# basic_bilheteria_app
 
 Nota: O foco foi para funcionalidades, quanto UI será melhorada quando houver disponibilidade.
 
