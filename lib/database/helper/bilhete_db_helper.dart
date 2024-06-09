@@ -1,73 +1,79 @@
-import 'dart:io' as io;
+import 'package:bilheteria_app/database/helper/db_helper.dart';
 import 'package:bilheteria_app/model/bilhete_model.dart';
-import 'package:sqflite/sqflite.dart';
-import 'package:path/path.dart';
-import 'package:path_provider/path_provider.dart';
 import 'dart:async';
 
-class BilheteDbHelper {
+class BilheteDbHelper extends DbHelper {
+  // Singleton pattern: Criação da instância única para ser reutilizada em todas as chamadas subsequentes.
   static final BilheteDbHelper _instance = BilheteDbHelper._internal();
-  factory BilheteDbHelper() => _instance;
-  static Database? _database;
 
+  //Retornar a instância única da classe
+  factory BilheteDbHelper() => _instance;
+
+  //impede a criação de instâncias adicionais da classe directamente.
   BilheteDbHelper._internal();
 
-  Future<Database> get database async {
-    if (_database != null) return _database!;
-    _database = await _initDatabase();
-    return _database!;
-  }
-
-  Future<Database> _initDatabase() async {
-    io.Directory documentDirectory = await getApplicationDocumentsDirectory();
-    String path = join(documentDirectory.path, 'gestao_bilheteria.db');
-    var db = await openDatabase(path, version: 1, onCreate: _onCreate);
-    return db;
-  }
-
-  Future<void> _onCreate(Database db, int version) async {
-    await db.execute('''
-      CREATE TABLE bilhetes (
-        id TEXT PRIMARY KEY,
-        tituloEvento TEXT,
-        descricao TEXT,
-        localizacao TEXT,
-        provincia TEXT,
-        horaInicio TEXT,
-        preco TEXT
-      )
-      ''');
-  }
-
+  // Registar bilhete na base de dados
   Future<int> inserirBilhete(BilheteModel bilhete) async {
-    Database db = await database;
-    return await db.insert('bilhetes', bilhete.toMap());
+    try {
+      final db = await database;
+      return await db.insert('bilhetes', bilhete.toMap());
+    } catch (e) {
+      print('Erro ao inserir bilhete: $e');
+      return -1;
+    }
   }
 
+  /* 
+  Buscar todos bilhetes registados na base
+  Retornar uma lista vazia em caso de erro
+*/
   Future<List<BilheteModel>> buscarBilhetes() async {
-    Database db = await database;
-    List<Map<String, dynamic>> maps = await db.query('bilhetes');
-    return List.generate(maps.length, (i) {
-      return BilheteModel.fromMap(maps[i]);
-    });
+    try {
+      final db = await database;
+      final List<Map<String, dynamic>> maps = await db.query('bilhetes');
+      return List.generate(maps.length, (i) {
+        return BilheteModel.fromMap(maps[i]);
+      });
+    } catch (e) {
+      print('Erro ao buscar bilhetes: $e');
+      return [];
+    }
   }
 
+  /* 
+  Actualizar um bilhete registado na base de dados passando o objecto por porametro
+  Retornar -1 em caso de erro
+*/
   Future<int> actualizarBilhete(BilheteModel bilhete) async {
-    Database db = await database;
-    return await db.update(
-      'bilhetes',
-      bilhete.toMap(),
-      where: 'id = ?',
-      whereArgs: [bilhete.id],
-    );
+    try {
+      final db = await database;
+      return await db.update(
+        'bilhetes',
+        bilhete.toMap(),
+        where: 'id = ?',
+        whereArgs: [bilhete.id],
+      );
+    } catch (e) {
+      print('Erro ao actualizar bilhete: $e');
+      return -1;
+    }
   }
 
+  /* 
+  Remover um bilhete registado na base de dados por id 
+  Retornar -1 em caso de erro
+*/
   Future<int> removerBilhete(String id) async {
-    Database db = await database;
-    return await db.delete(
-      'bilhetes',
-      where: 'id = ?',
-      whereArgs: [id],
-    );
+    try {
+      final db = await database;
+      return await db.delete(
+        'bilhetes',
+        where: 'id = ?',
+        whereArgs: [id],
+      );
+    } catch (e) {
+      print('Erro ao remover bilhete: $e');
+      return -1;
+    }
   }
 }

@@ -5,19 +5,19 @@ class BilheteModel {
   final String localizacao;
   final String provincia;
   final String horaInicio;
-  final String preco;
+  final double preco;
+  final String? dataCricao;
 
-  BilheteModel({
-    required this.id,
-    required this.tituloEvento,
-    required this.descricao,
-    required this.localizacao,
-    required this.provincia,
-    required this.horaInicio,
-    required this.preco, required 
-  });
+  BilheteModel(
+      {required this.id,
+      required this.tituloEvento,
+      required this.descricao,
+      required this.localizacao,
+      required this.provincia,
+      required this.horaInicio,
+      required this.preco,
+      this.dataCricao});
 
-  
   Map<String, dynamic> toMap() {
     return {
       'id': id,
@@ -26,7 +26,8 @@ class BilheteModel {
       'localizacao': localizacao,
       'provincia': provincia,
       'horaInicio': horaInicio,
-      'preco': preco
+      'preco': preco,
+      'dataCriacao': dataCricao
     };
   }
 
@@ -39,7 +40,7 @@ class BilheteModel {
       provincia: map['provincia'],
       horaInicio: map['horaInicio'],
       preco: map['preco'],
+      dataCricao: map['dataCriacao']
     );
   }
-
 }

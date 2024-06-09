@@ -1,6 +1,9 @@
 import 'package:bilheteria_app/controller/bilhete_controller.dart';
 import 'package:bilheteria_app/model/bilhete_model.dart';
+import 'package:bilheteria_app/view/widgets/dropdown_button.dart';
+import 'package:bilheteria_app/view/widgets/pick_time.dart';
 import 'package:flutter/material.dart';
+import 'package:uuid/uuid.dart';
 
 class BilheteScreen extends StatefulWidget {
   @override
@@ -11,6 +14,19 @@ class _BilheteScreenState extends State<BilheteScreen> {
   final BilheteController _controller = BilheteController();
   List<BilheteModel> _bilhetes = [];
 
+  List<String> _provincias = [
+    'Maputo',
+    'Gaza',
+    'Inhambane',
+    'Sofala',
+    'Manica',
+    'Tete',
+    'Zambézia',
+    'Nampula',
+    'Niassa',
+    'Cabo Delgado'
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -18,7 +34,7 @@ class _BilheteScreenState extends State<BilheteScreen> {
   }
 
   Future<void> _fetchBilhetes() async {
-    List<BilheteModel> bilhetes = await _controller.fetchBilhetes();
+    List<BilheteModel> bilhetes = await _controller.buscarTodos();
     setState(() {
       _bilhetes = bilhetes;
     });
@@ -26,18 +42,20 @@ class _BilheteScreenState extends State<BilheteScreen> {
 
   void _showBilheteDialog({BilheteModel? bilhete}) {
     final _formKey = GlobalKey<FormState>();
-    final _idController = TextEditingController(text: bilhete?.id ?? '');
+    final _idController =
+        TextEditingController(text: bilhete?.id ?? const Uuid().v4());
     final _tituloController =
         TextEditingController(text: bilhete?.tituloEvento ?? '');
     final _descricaoController =
         TextEditingController(text: bilhete?.descricao ?? '');
     final _localizacaoController =
         TextEditingController(text: bilhete?.localizacao ?? '');
-    final _provinciaController =
-        TextEditingController(text: bilhete?.provincia ?? '');
+    var _provinciaController = bilhete?.provincia ?? '';
+    TextEditingController(text: bilhete?.provincia ?? '');
     final _horaInicioController =
         TextEditingController(text: bilhete?.horaInicio ?? '');
-    final _precoController = TextEditingController(text: bilhete?.preco ?? '');
+    final _precoController = TextEditingController(
+        text: bilhete?.preco != null ? bilhete?.preco.toString() : '');
 
     showDialog(
       context: context,
@@ -50,18 +68,26 @@ class _BilheteScreenState extends State<BilheteScreen> {
               child: Column(
                 children: <Widget>[
                   TextFormField(
+                    enabled: false,
                     controller: _idController,
-                    decoration: InputDecoration(labelText: 'ID'),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Por favor insira o ID';
-                      }
-                      return null;
-                    },
+                    decoration: InputDecoration(
+                      labelText: 'ID',
+                      border: OutlineInputBorder(
+                        borderSide: const BorderSide(color: Colors.grey),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
                   ),
+                  const SizedBox(height: 10),
                   TextFormField(
                     controller: _tituloController,
-                    decoration: InputDecoration(labelText: 'Título do Evento'),
+                    decoration: InputDecoration(
+                      labelText: 'Título do Evento',
+                      border: OutlineInputBorder(
+                        borderSide: const BorderSide(color: Colors.grey),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Por favor insira o título do evento';
@@ -69,9 +95,16 @@ class _BilheteScreenState extends State<BilheteScreen> {
                       return null;
                     },
                   ),
+                  const SizedBox(height: 10),
                   TextFormField(
                     controller: _descricaoController,
-                    decoration: InputDecoration(labelText: 'Descrição'),
+                    decoration: InputDecoration(
+                      labelText: 'Descrição',
+                      border: OutlineInputBorder(
+                        borderSide: const BorderSide(color: Colors.grey),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Por favor insira a descrição';
@@ -79,9 +112,16 @@ class _BilheteScreenState extends State<BilheteScreen> {
                       return null;
                     },
                   ),
+                  const SizedBox(height: 10),
                   TextFormField(
                     controller: _localizacaoController,
-                    decoration: InputDecoration(labelText: 'Localização'),
+                    decoration: InputDecoration(
+                      labelText: 'Localização',
+                      border: OutlineInputBorder(
+                        borderSide: const BorderSide(color: Colors.grey),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Por favor insira a localização';
@@ -89,32 +129,56 @@ class _BilheteScreenState extends State<BilheteScreen> {
                       return null;
                     },
                   ),
-                  TextFormField(
-                    controller: _provinciaController,
-                    decoration: InputDecoration(labelText: 'Província'),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Por favor insira a província';
-                      }
-                      return null;
-                    },
+                  const SizedBox(height: 10),
+                  DropdownButtonCombBox(
+                    typeValue: 'Provincia',
+                    values: _provincias,
+                    selectedValue: _provinciaController,
+                    onChanged: (value) => setState(() {
+                      _provinciaController = value!;
+                    }),
                   ),
-                  TextFormField(
-                    controller: _horaInicioController,
-                    decoration: InputDecoration(labelText: 'Hora de Início'),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Por favor insira a hora de início';
-                      }
-                      return null;
-                    },
+                  const SizedBox(height: 10),
+                  GestureDetector(
+                    onTap: () => pickTime(context,
+                        _horaInicioController), 
+                    child: AbsorbPointer(
+                      child: TextFormField(
+                        controller: _horaInicioController,
+                        decoration: InputDecoration(
+                          labelText: 'Hora de Início',
+                          border: OutlineInputBorder(
+                            borderSide: const BorderSide(color: Colors.grey),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Por favor insira a hora de início';
+                          }
+                          return null;
+                        },
+                      ),
+                    ),
                   ),
+                  const SizedBox(height: 10),
                   TextFormField(
                     controller: _precoController,
-                    decoration: InputDecoration(labelText: 'Preço'),
+                    decoration: InputDecoration(
+                      labelText: 'Preço',
+                      border: OutlineInputBorder(
+                        borderSide: const BorderSide(color: Colors.grey),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    keyboardType: TextInputType.number,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Por favor insira o preço';
+                      }
+                      final double? preco = double.tryParse(value);
+                      if (preco == null) {
+                        return 'Por favor insira um número válido';
                       }
                       return null;
                     },
@@ -139,14 +203,15 @@ class _BilheteScreenState extends State<BilheteScreen> {
                     tituloEvento: _tituloController.text,
                     descricao: _descricaoController.text,
                     localizacao: _localizacaoController.text,
-                    provincia: _provinciaController.text,
+                    provincia: _provinciaController,
                     horaInicio: _horaInicioController.text,
-                    preco: _precoController.text,
+                    preco: double.parse(_precoController.text),
+                    dataCricao: DateTime.now().toString(),
                   );
                   if (bilhete == null) {
-                    await _controller.addBilhete(novoBilhete);
+                    await _controller.adicionar(novoBilhete);
                   } else {
-                    await _controller.updateBilhete(novoBilhete);
+                    await _controller.actualizar(novoBilhete);
                   }
                   _fetchBilhetes();
                   Navigator.of(context).pop();
@@ -184,7 +249,7 @@ class _BilheteScreenState extends State<BilheteScreen> {
                 IconButton(
                   icon: Icon(Icons.delete),
                   onPressed: () async {
-                    await _controller.deleteBilhete(bilhete.id);
+                    await _controller.remover(bilhete.id);
                     _fetchBilhetes();
                   },
                 ),
